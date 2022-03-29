@@ -6,40 +6,49 @@ import com.revature.models.loginDTO;
 
 import com.revature.services.EventService;
 import com.revature.services.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
 
-@CrossOrigin("http://localhost:4200")
+
 @RestController
 @RequestMapping(value = "users")
 public class UserController {
 
-    private UserService userService;
-    private EventService eventsService;
+    private final UserService userService;
+    private final Logger userControllerLog = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping("/registration")
-    public ResponseEntity<Users> registration(@RequestBody Users user) throws NoSuchAlgorithmException {
-            if(userService.createUser(user)){
-                System.out.println(user.getUserPreferences());
+    public ResponseEntity<Users> registration(@RequestBody Users user){
+
+        if(userService.createUser(user)){
+
+
+                userControllerLog.info("User: " + user.getUsername()
+                        + "has successfully created an account!");
+
                 return ResponseEntity.status(201).body(user);
             }
+
             return ResponseEntity.status(400).build();
         }
 
 
     @PostMapping("/login")
-    public ResponseEntity<Users> login(@RequestBody loginDTO login, HttpSession session) throws NoSuchAlgorithmException {
+    public ResponseEntity<Users> login(@RequestHeader loginDTO login, HttpSession session){
+
         if(userService.loginUser(login)){
-            Users user= userService.findByUsername(login.getUsername());
-            session.setAttribute("login",true);
-            session.setAttribute("userID", user.getUserId());
+
+
+            session.setAttribute("username", login.getUsername());
+            Users user = userService.findByUsername(login.getUsername());
+            userControllerLog.info("User: " + user.getUsername()
+                    + "has successfully logged in!");
+
             return ResponseEntity.status(200).body(user);
         }
         return ResponseEntity.status(401).build();
@@ -48,6 +57,8 @@ public class UserController {
     @PostMapping("/logout")
     public ResponseEntity<Users> logout(HttpSession session){
         if(session != null) {
+            userControllerLog.info("User: " + session.getAttribute("username")
+                    + "has successfully logged out!");
             session.invalidate();
             return ResponseEntity.status(200).build();
         }
@@ -57,15 +68,14 @@ public class UserController {
     @GetMapping("/profile")
     @ResponseBody
     public ResponseEntity<Users> getEvents(@RequestBody loginDTO login, HttpSession session){
-        if(session.getAttribute("login").equals(true)){
-            Users thisuser = userService.findByUsername(login.getUsername());
-            if (thisuser != null) {
-                return ResponseEntity.status(200).body(thisuser);
-            }else{
-                return ResponseEntity.status(400).build();
+
+
+        Users thisuser = userService.findByUsername(session.getAttribute("username").toString());
+        if (thisuser != null) {
+            return ResponseEntity.status(200).body(thisuser);
+        }else{
+            return ResponseEntity.status(400).build();
             }
-        }
-        return ResponseEntity.status(401).build();
     }
 
     @GetMapping("/{username}")
@@ -80,20 +90,19 @@ public class UserController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Users> update(@RequestBody Users user) throws NoSuchAlgorithmException {
+    public ResponseEntity<Users> update(@RequestBody Users user){
         if(userService.updateUser(user)){
+            userControllerLog.info("User: " + user.getUsername() +
+                    "has successfully updated their information!");
             return ResponseEntity.status(201).body(user);
         }
         return ResponseEntity.status(400).build();
     }
 
-
-
     @Autowired
-    UserController(UserService userService, EventService eventService){
+    UserController(UserService userService){
         super();
         this.userService = userService;
-        this.eventsService = eventService;
     }
 
 }

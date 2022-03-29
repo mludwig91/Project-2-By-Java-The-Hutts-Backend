@@ -2,6 +2,9 @@ package com.revature.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -19,19 +22,25 @@ public class Users {
     @Column(nullable = false)
     private String lastname;
 
+
+    @NotEmpty
+    @Size(min = 2, max = 21, message = "Username must be between 2 and 21 characters")
     @Column(unique = true, nullable = false)
     private String username;
 
     @Column(unique = true, nullable = false)
+    @Email
     private String email;
 
     @Column(nullable = false)
+    @Size(min = 8, message = "Password should be at least 8 characters long")
     private String password;
 
     @ManyToMany(mappedBy = "eventParticipants")
     @JsonIgnoreProperties("eventParticipants")
     Set<Events> usersEvents;
 
+    //is list of strings best way to store preferences?
     @ElementCollection
     @CollectionTable(name = "user_preferences",
     joinColumns = @JoinColumn(name="userId"))
@@ -41,8 +50,8 @@ public class Users {
     public Users() {
     }
 
-    public Users(int userId, String firstname, String lastname, String username, String email, String password,
-                 Set<Events> usersEvents, List<String> userPreferences) {
+    public Users(int userId, String firstname, String lastname, String username,
+                 String email, String password, Set<Events> usersEvents, List<String> userPreferences) {
         this.userId = userId;
         this.firstname = firstname;
         this.lastname = lastname;

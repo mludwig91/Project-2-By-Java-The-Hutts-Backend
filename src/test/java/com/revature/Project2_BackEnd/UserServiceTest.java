@@ -4,6 +4,7 @@ import com.revature.models.Users;
 import com.revature.models.loginDTO;
 import com.revature.repo.UsersDAO;
 import com.revature.services.UserService;
+import com.revature.utils.Encoder;
 import com.revature.utils.Encryptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

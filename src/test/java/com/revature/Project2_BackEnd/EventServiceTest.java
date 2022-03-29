@@ -8,12 +8,14 @@ import com.revature.repo.EventsDAO;
 import com.revature.repo.UsersDAO;
 import com.revature.services.EventService;
 import com.revature.services.UserService;
+import com.revature.utils.Encoder;
 import com.revature.utils.Encryptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ public class EventServiceTest {
     private List<Events> testli = new ArrayList<Events>(){
         {add(testEvents);}
     };
+
 
     @BeforeEach
     public void setUp() throws NoSuchAlgorithmException {

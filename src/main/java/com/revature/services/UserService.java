@@ -1,27 +1,27 @@
 package com.revature.services;
 
+import com.revature.controllers.UserController;
 import com.revature.models.Users;
 import com.revature.models.loginDTO;
-
 import com.revature.repo.UsersDAO;
-
-import com.revature.utils.Encryptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
 
     private final UsersDAO usersDAO;
-    private static final Encryptor encryptor = new Encryptor();
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+    private final Logger userServiceLog = LoggerFactory.getLogger(UserService.class);
+
+
 
     @Autowired
     public UserService(UsersDAO usersDAO) {
-        super();
         this.usersDAO = usersDAO;
     }
 
@@ -31,34 +31,30 @@ public class UserService {
         return usersDAO.findByUsername(username);
     }
 
-    public Users findUserByEmail(String email){
-        return usersDAO.findByEmail(email);
-    }
-
-    public boolean loginUser(loginDTO user) throws NoSuchAlgorithmException {
+    public boolean loginUser(loginDTO user){
         Users secure = usersDAO.findByUsername(user.getUsername());
         if (secure != null){
-            String passcheck = encryptor.encoder(user.getPassword());
+            String passcheck = encoder.encode(user.getPassword());
             String securepass = secure.getPassword();
             return securepass.equals(passcheck);
-            }
+        }
         return false;
     }
 
-    public boolean createUser(Users user) throws NoSuchAlgorithmException {
-        user.setPassword(encryptor.encoder(user.getPassword()));
-        System.out.println(user.getUserPreferences());
+    public boolean createUser(Users user){
+        //User Validaiton before saving
+        user.setPassword(encoder.encode(user.getPassword()));
         try{
             usersDAO.save(user);
+            userServiceLog.info(user.getUsername() +" was successfully registered!!");
         }catch(Exception e){
+            userServiceLog.debug(user.getUsername() +" could not be registered!!");
             e.printStackTrace();
-            return false;
         }
         return true;
     }
 
-    public boolean updateUser(Users user) throws NoSuchAlgorithmException {
-        System.out.println(user.getUserId());
+    public boolean updateUser(Users user){
         Users user2 = usersDAO.findByUsername(user.getUsername());
         user.setUserId(user2.getUserId());
             try{
